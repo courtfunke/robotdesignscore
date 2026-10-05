@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot Design Score Sheet</title>
+<style>
+:root{--ink:#222;--sel:#1f2a44;--selbg:#e3e8f5;--bad:#b3261e;--line:#8c8c8c;--title:#4a4a4a}
+*{box-sizing:border-box}
+body{margin:0;background:#e9e9e9;color:var(--ink);font:13px/1.15 Arial,Helvetica,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* timer bar (screen only) */
+.timer{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:8px 12px}
+.timer .time{font:700 2.4rem/1 "Courier New",monospace;min-width:5.2ch;text-align:center}
+.timer.done{background:var(--bad);animation:flash .5s steps(2) 6}
+@keyframes flash{50%{background:#fff;color:var(--bad)}}
+.tb{border:2px solid #fff;background:transparent;color:#fff;border-radius:6px;padding:6px 14px;font-weight:700}
+.tb:hover,.tb.go{background:#fff;color:var(--ink)}
+
+/* page */
+.page{max-width:860px;margin:14px auto;background:#fff;padding:22px 24px 18px;box-shadow:0 1px 6px rgba(0,0,0,.2)}
+.top{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start}
+.logo{padding-top:4px;font-weight:900;line-height:.95}
+.logo .f{font-size:19px;font-style:italic;letter-spacing:-.5px}
+.logo .l{font-size:19px;display:block}
+.logo .c{display:block;margin-top:6px;background:#777;color:#fff;border-radius:6px;text-align:center;font-size:17px;letter-spacing:.14em;padding:4px 0;font-weight:700}
+h1{margin:0 0 6px;font-size:36px;line-height:1;color:var(--title);letter-spacing:-1px}
+.id{display:grid;grid-template-columns:1fr;border:1px solid var(--ink);border-radius:14px;overflow:hidden}
+.id label{display:block;padding:3px 8px 4px;font-size:12px;height:60px}
+.id input{display:block;width:100%;border:0;background:transparent;font:inherit;font-size:16px;padding:4px 0 0}
+.id input:focus{outline:2px solid var(--sel);outline-offset:1px}
+.id select{display:block;width:100%;border:0;background:transparent;font:inherit;font-size:16px;padding:4px 0 0;cursor:pointer}
+.id select:focus{outline:2px solid var(--sel);outline-offset:1px}
+.instr{margin:26px 0 18px}
+.instr p{margin:0 0 12px;font-size:13px;line-height:1.2;max-width:600px}
+.instr b.h{display:block;margin-bottom:2px;font-size:14px}
+
+/* rubric table */
+.sheet{border:1px solid var(--ink);border-radius:12px;overflow:hidden}
+.g{display:grid;grid-template-columns:1fr 1fr 1fr .95fr}
+.head>div{text-align:center;font-weight:700;font-size:16px;padding:9px 6px 7px;line-height:1.25}
+.head>div:nth-child(1){background:#e4e4e4}
+.head>div:nth-child(2){background:#c3c3c3}
+.head>div:nth-child(3){background:#a0a0a0}
+.head>div:nth-child(4){background:#7c7c7c;color:#fff;padding:0}
+.head>div:nth-child(4) span{display:block;padding:9px 6px 7px}
+.head>div:nth-child(4) i{display:block;background:#a0a0a0;color:#222;font:italic 400 12px Arial;text-align:left;padding:3px 8px}
+.cat{background:#d0d0d0;border-top:1px solid var(--line);padding:9px 10px 8px;font-size:13px}
+.cat b{font-size:16px}
+.rw{border-top:1px solid var(--line)}
+.rw .g{min-height:38px}
+.cell{display:flex;gap:6px;align-items:flex-start;text-align:left;border:0;border-left:1px solid var(--line);background:#fff;padding:6px 6px;font-size:13px;line-height:1.1}
+.cell:first-child{border-left:0}
+.cell:hover{background:#f0f0f0}
+.cell:focus-visible,.icbtn:focus-visible{outline:3px solid var(--sel);outline-offset:-3px}
+.cell[aria-checked=true],.exc.on{background:var(--selbg)}
+.cell .tx{padding-top:1px}
+
+/* checkbox + gear icons */
+.ic{flex:none;width:22px;height:22px;display:block}
+.cvm{font-family:"Segoe UI Symbol","DejaVu Sans",Arial,sans-serif;color:#555;font-size:14px}
+.box{width:20px;height:20px;border:1.5px solid #555;border-radius:4px;background:#fff;margin:1px 0 0;position:relative}
+[aria-checked=true] .box{background:var(--sel);border-color:var(--sel)}
+[aria-checked=false] .box{background:#fff}
+[aria-checked=true] .box::after{content:"\2713";position:absolute;inset:0;color:#fff;font:900 14px/19px Arial;text-align:center}
+.gear .teeth{fill:none;stroke:#333;stroke-width:3.4;stroke-dasharray:3.6 3.6}
+.gear .body{fill:#fff;stroke:#333;stroke-width:1.4}
+.gear .hub{fill:none;stroke:#333;stroke-width:1.4}
+.gear .chk{display:none;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+[aria-checked=true] .gear .body{fill:var(--sel)}
+[aria-checked=true] .gear .teeth{stroke:var(--sel)}
+[aria-checked=true] .gear .hub{display:none}
+[aria-checked=true] .gear .chk{display:block}
+
+/* exceeds cell */
+.exc{display:flex;gap:6px;align-items:flex-start;border-left:1px solid var(--line);padding:6px 6px;cursor:pointer}
+.icbtn{border:0;background:none;padding:0}
+.exc textarea{flex:1;min-width:0;height:100%;min-height:26px;border:0;border-bottom:1px solid transparent;background:transparent;resize:vertical;font:12px/1.2 Arial;padding:2px 3px}
+.exc.on textarea{border-bottom:1px solid #777;background:#fff}
+.exc.err textarea{border-bottom:2px solid var(--bad);background:#fdeceb}
+.exc textarea:disabled{cursor:pointer}
+
+.foot{display:flex;gap:8px;align-items:flex-start;margin:14px 0 0;font:italic 12px/1.25 Arial;max-width:600px}
+.foot .ic{width:24px;height:24px}
+
+/* totals */
+.gen{margin-top:14px;border:1px solid var(--ink);border-radius:12px;padding:6px 10px 8px}
+.gen label{display:block;font-size:12px;font-weight:700}
+.gen textarea{display:block;width:100%;min-height:72px;border:0;background:transparent;resize:vertical;font:14px/1.3 Arial;padding:4px 0 0}
+.gen textarea:focus{outline:2px solid var(--sel);outline-offset:2px}
+.total{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:18px;padding:10px 14px;border:1px solid var(--ink);border-radius:12px}
+.total .n{font:700 22px "Courier New",monospace}
+.total .sub{font-size:12px;color:#444}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.acts button{border:2px solid var(--ink);background:#fff;border-radius:6px;padding:7px 14px;font-weight:700}
+.acts button.p{background:var(--ink);color:#fff}
+.status{margin-top:8px;font-weight:700;min-height:1em}
+.status.bad{color:var(--bad)}
+
+@media(max-width:720px){
+ .page{padding:14px 12px;margin:0}
+ .top{grid-template-columns:1fr}.logo{display:flex;gap:10px;align-items:center}.logo .c{margin:0;padding:4px 10px}
+ .head{display:none}
+ .g{grid-template-columns:1fr}
+ .cell,.exc{border-left:0;border-top:1px solid #ddd}
+ .cell:first-child{border-top:0}
+ .exc{min-height:64px}
+ .id{grid-template-columns:1fr}.id label{height:auto}.id label+label{border-left:0;border-top:1px solid var(--ink)}
+ .lv{display:inline!important}
+}
+.lv{display:none;font-size:11px;opacity:.65;margin-right:4px}
+
+#printOut{display:none;font:11px/1.3 Arial,sans-serif;color:#000}
+#printOut .pt{font-size:20px;font-weight:700}
+#printOut .pn{font-size:15px;margin:4px 0 10px}
+#printOut table{width:100%;border-collapse:collapse}
+#printOut th,#printOut td{border:1px solid #555;padding:4px 6px;text-align:left;vertical-align:top}
+#printOut th{background:#ddd}
+#printOut .pc{font-weight:700;width:14%}
+#printOut .pl{width:17%;white-space:nowrap}
+#printOut .pcm{margin-top:3px;font-style:italic}
+#printOut .pscore{margin-top:10px;font-size:14px;font-weight:700}
+#printOut .pgen{margin-top:10px;border:1px solid #555;padding:6px 8px;white-space:pre-wrap}
+#printOut .pgen b{display:block;margin-bottom:3px}
+@page{size:letter;margin:.5in}
+@media print{
+ body{background:#fff}
+ body>*:not(#printOut){display:none!important}
+ #printOut{display:block}
+ .cell:hover{background:#fff}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .exc textarea{resize:none}
+ .gen textarea{resize:none}
+}
+@media(prefers-reduced-motion:reduce){.timer.done{animation:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="gearsym" viewBox="0 0 24 24">
+    <circle class="teeth" cx="12" cy="12" r="9.2"/>
+    <circle class="body" cx="12" cy="12" r="7.4"/>
+    <circle class="hub" cx="12" cy="12" r="3"/>
+    <path class="chk" d="M7.8 12.4l3 3 5.6-6.2"/>
+  </symbol>
+</svg>
+
+<div class="timer" id="timer" role="timer" aria-live="off">
+  <div class="time" id="time">5:00</div>
+  <button class="tb go" id="start">Start</button>
+  <button class="tb" id="reset">Reset</button>
+  <button class="tb" id="test">Test sound</button>
+</div>
+
+<main class="page">
+  <div class="top">
+    <div class="logo" aria-label="FIRST LEGO League Challenge">
+      <div><span class="f">FIRST<sup style="font-size:8px">&reg;</sup></span><span class="l">LEGO<sup style="font-size:8px">&reg;</sup></span><span class="l">LEAGUE</span></div>
+      <span class="c">CHALLENGE</span>
+    </div>
+    <div>
+      <h1>Robot Design</h1>
+      <div class="id">
+                <label>Team Name<select id="teamName"><option value="">Select a team</option><option>Apex-GPT</option><option>Automatrons</option><option>Biobots</option><option>Canopy Coders</option><option>Codebreakers</option><option>Cybertronic</option><option>Duckzilla</option><option>Error 404: Chicken Not Found</option><option>Headless Chickens</option><option>Legacy Builders</option><option>MARS Eagles (The)</option><option>Master KARDS</option><option>Phoenix Phorce</option><option>Roz</option><option>Short Circuit</option><option>Solar Stars</option><option>Terrabyte Titans</option></select></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="instr">
+    <b class="h">Instructions</b>
+    <p>Teams should communicate to the judges their achievement in each of the following criteria. This rubric should be filled out according to the Robot Design explanation.</p>
+    <p>Judges are <b>required</b> to tick one box on each separate row to indicate the level the team has achieved. If the team <b>EXCEEDS</b>, a short comment in the exceeds column is required.</p>
+  </div>
+
+  <div class="sheet" id="sheet">
+    <div class="g head">
+      <div>BEGINNING<br>1</div>
+      <div>DEVELOPING<br>2</div>
+      <div>ACCOMPLISHED<br>3</div>
+      <div><span>EXCEEDS<br>4</span><i>How has the team exceeded?</i></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="cvm" style="font-size:20px;line-height:1">&#9881;&#xFE0E;</span>
+    <span>Criteria marked with this gear symbol count dually toward Robot Design and Core Values awards rankings. Core Values make up 25% of a team&rsquo;s Champion&rsquo;s score and should be demonstrated throughout their work and event experience.</span>
+  </div>
+
+  <div class="gen">
+    <label for="general">General Comments</label>
+    <textarea id="general" rows="3"></textarea>
+  </div>
+
+  <div class="total">
+    <div><div class="n"><span id="score">0</span> / 40</div><div class="sub"><span id="done">0</span> of 10 rows scored &middot; Core Values rows: <span id="cvscore">0</span> / 20</div></div>
+    <div class="acts"><button id="submit" class="p">Submit scores</button><button id="print">Print / Save PDF</button><button id="clear">Clear sheet</button></div>
+  </div>
+  <div class="status" id="status" role="status"></div>
+</main>
+<div id="printOut" aria-hidden="true"></div>
+
+<script>
+const DATA=[
+ {t:"IDENTIFY",d:"Team determined which missions to attempt, explored building and coding resources, and sought guidance as needed.",rows:[
+  {cv:0,o:["Minimal evidence of mission strategy", "Partial evidence of mission strategy", "Clear evidence of mission strategy"]},
+  {cv:1,o:["Minimal use of building or coding resources", "Some use of building or coding resources", "Clear use of building or coding resources to support their mission strategy"]}]},
+ {t:"DESIGN",d:"Team members worked collaboratively on their designs and developed the building and coding skills needed.",rows:[
+  {cv:1,o:["Minimal evidence that all team members contributed ideas", "Partial evidence that all team members contributed ideas", "Clear evidence that all team members contributed ideas"]},
+  {cv:0,o:["Minimal evidence of building and coding skills in all team members", "Partial evidence of building and coding skills in all team members", "Clear evidence of building and coding skills in all team members"]}]},
+ {t:"CREATE",d:"Team developed original designs or improved on existing ones according to their mission strategy.",rows:[
+  {cv:0,o:["Unclear explanation of attachments and their purpose", "Simple explanation of attachments and their purpose", "Clear explanation of innovative attachments and their purpose"]},
+  {cv:0,o:["Unclear explanation of code and/or sensor use", "Simple explanation of code and/or sensor use", "Clear explanation of innovative code and/or sensor use"]}]},
+ {t:"ITERATE",d:"Team repeatedly tested their robot and code to identify areas for improvement and incorporated the findings into their solutions.",rows:[
+  {cv:0,o:["Minimal evidence of testing their robot and code", "Partial evidence of testing their robot and code", "Clear evidence of repeated testing of their robot and code"]},
+  {cv:1,o:["Minimal evidence of improvements based on testing", "Partial evidence of improvements based on testing", "Clear evidence of improvements based on testing"]}]},
+ {t:"COMMUNICATE",d:"Team effectively explained what they learned from the robot design process and celebrated their progress.",rows:[
+  {cv:1,o:["Unclear explanation of process and lessons learned", "Simple explanation of process and lessons learned", "Detailed explanation of process and lessons learned"]},
+  {cv:1,o:["Team shows minimal pride or enthusiasm for their work", "Team shows partial pride or enthusiasm for their work", "Team clearly shows pride or enthusiasm for their work"]}]}
+];
+const LV=["Beginning 1","Developing 2","Accomplished 3","Exceeds 4"];
+const GEAR='<svg class="ic gear" aria-hidden="true"><use href="#gearsym"/></svg>';
+const BOX='<span class="ic box"></span>';
+const sheet=document.getElementById("sheet"), ROWS=[];
+let idx=0;
+DATA.forEach(c=>{
+  const cat=document.createElement("div");cat.className="cat";
+  cat.innerHTML="<b>"+c.t+"</b> \u2013 "+c.d;sheet.appendChild(cat);
+  c.rows.forEach(r=>{
+    const i=idx++, rw=document.createElement("div");rw.className="rw";
+    const g=document.createElement("div");g.className="g";g.setAttribute("role","radiogroup");
+    g.setAttribute("aria-label",c.t+": "+r.o[2]);
+    const icon=BOX, mark=r.cv?'<span class="cvm" title="Also counts toward Core Values">\u2699\uFE0E</span> ':'', cells=[];
+    for(let k=0;k<3;k++){
+      const b=document.createElement("button");b.type="button";b.className="cell";
+      b.setAttribute("role","radio");b.setAttribute("aria-checked","false");
+      b.innerHTML=icon+'<span class="tx">'+mark+'<span class="lv">'+LV[k]+' \u2013 </span>'+r.o[k]+'</span>';
+      b.addEventListener("click",()=>pick(i,k));
+      g.appendChild(b);cells.push(b);
+    }
+    const ex=document.createElement("div");ex.className="exc";
+    ex.innerHTML='<button type="button" class="icbtn" role="radio" aria-checked="false" aria-label="Exceeds 4">'+icon+'</button><textarea disabled placeholder="" aria-label="How has the team exceeded?"></textarea>';
+    const ib=ex.querySelector(".icbtn"), ta=ex.querySelector("textarea");
+    ex.addEventListener("click",e=>{if(e.target===ta&&!ta.disabled)return;pick(i,3,e.target.closest(".icbtn")?null:"keep");});
+    ta.addEventListener("input",()=>{ROWS[i].c=ta.value;if(ta.value.trim())ex.classList.remove("err");});
+    g.appendChild(ex);cells.push(ib);
+    rw.appendChild(g);sheet.appendChild(rw);
+    ROWS.push({cv:r.cv,v:0,c:"",cells,ex,ta,o:r.o,cat:c.t});
+  });
+});
+function pick(i,k,mode){
+  const r=ROWS[i];
+  r.v=(r.v===k+1)?(mode==="keep"?r.v:0):k+1;
+  r.cells.forEach((b,j)=>b.setAttribute("aria-checked",String(r.v===j+1)));
+  const on=r.v===4;
+  r.ex.classList.toggle("on",on);r.ta.disabled=!on;
+  if(on&&k===3)r.ta.focus();
+  if(!on)r.ex.classList.remove("err");
+  tally();
+}
+function tally(){
+  let s=0,d=0,cv=0;
+  ROWS.forEach(r=>{if(r.v){s+=r.v;d++;if(r.cv)cv+=r.v;}});
+  score.textContent=s;done.textContent=d;cvscore.textContent=cv;
+  const st=document.getElementById("status");st.textContent="";st.className="status";
+}
+/* Google Sheet web app URL: paste your Apps Script "Web app" URL between the quotes (see README) */
+const SHEET_URL="https://script.google.com/macros/s/AKfycbyMnV_5IbSIieopn1od7E0DNK_fxzY_KUrzbhtGtlNoS001UpWvH2bZwRF_zERtALw/exec";
+const LABELS=["Identify: mission strategy", "Identify: building/coding resources", "Design: all members contributed ideas", "Design: building/coding skills", "Create: attachments", "Create: code/sensor use", "Iterate: testing", "Iterate: improvements from testing", "Communicate: process & lessons", "Communicate: pride/enthusiasm"];
+let submitted=false;
+function validate(needTeam){
+  const st=document.getElementById("status");let missing=0,bad=0,msg=[];
+  ROWS.forEach(r=>{if(!r.v)missing++;if(r.v===4&&!r.c.trim()){bad++;r.ex.classList.add("err");}});
+  if(needTeam&&!document.getElementById("teamName").value)msg.push("Select a team name.");
+  if(missing)msg.push(missing+" row"+(missing>1?"s":"")+" still need a score.");
+  if(bad)msg.push(bad+" Exceeds row"+(bad>1?"s":"")+" need a comment.");
+  st.className=msg.length?"status bad":"status";st.textContent=msg.join(" ");
+  return !msg.length;
+}
+/* Printing: build a compact one-page summary of the submitted scores only */
+const LVN=["Beginning","Developing","Accomplished","Exceeds"];
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
+function buildPrint(){
+  const out=document.getElementById("printOut");out.textContent="";
+  const h=el("div","ph");
+  h.appendChild(el("div","pt","FIRST LEGO League Challenge \u2013 Robot Design"));
+  h.appendChild(el("div","pn","Team: "+(document.getElementById("teamName").value||"\u2014")+"    |    Date: "+new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"})));
+  out.appendChild(h);
+  const tb=el("table");
+  const hd=el("tr");["Criteria","Level achieved","Result / comment"].forEach(t=>hd.appendChild(el("th",null,t)));tb.appendChild(hd);
+  let last="",s=0,cv=0;
+  ROWS.forEach(r=>{
+    const tr=el("tr");
+    const c0=el("td","pc",r.cat===last?"":r.cat);last=r.cat;
+    const c1=el("td","pl",r.v?(r.v+" \u2013 "+LVN[r.v-1]):"\u2014");
+    const c2=el("td");
+    const stmt=r.v&&r.v<4?r.o[r.v-1]:(r.v===4?r.o[2]:"");
+    c2.textContent=(r.cv?"\u2699\uFE0E ":"")+stmt;
+    if(r.v===4){const cm=el("div","pcm","Exceeds: "+(r.c.trim()||"(no comment)"));c2.appendChild(cm);}
+    if(r.v){s+=r.v;if(r.cv)cv+=r.v;}
+    tr.appendChild(c0);tr.appendChild(c1);tr.appendChild(c2);tb.appendChild(tr);
+  });
+  out.appendChild(tb);
+  out.appendChild(el("div","pscore","Total: "+s+" / 40    |    Core Values rows (\u2699\uFE0E): "+cv+" / 20"));
+  const g=document.getElementById("general").value.trim();
+  if(g){const gb=el("div","pgen");gb.appendChild(el("b",null,"General Comments"));gb.appendChild(el("div",null,g));out.appendChild(gb);}
+}
+window.addEventListener("beforeprint",buildPrint);
+document.getElementById("print").addEventListener("click",()=>{if(validate(false)){buildPrint();window.print();}});
+document.getElementById("submit").addEventListener("click",async()=>{
+  const st=document.getElementById("status"),btn=document.getElementById("submit");
+  if(!validate(true))return;
+  if(!SHEET_URL){st.className="status bad";st.textContent="Google Sheet is not connected yet: add the web app URL to SHEET_URL in index.html.";return;}
+  if(submitted&&!confirm("These scores were already submitted. Submit again?"))return;
+  const payload={form:"robot",teamName:document.getElementById("teamName").value,
+    scores:ROWS.map(r=>r.v),
+    comments:ROWS.map((r,i)=>r.v===4?LABELS[i]+": "+r.c.trim():"").filter(Boolean).join(" | "),general:document.getElementById("general").value.trim()};
+  btn.disabled=true;btn.textContent="Sending\u2026";
+  try{
+    await fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});
+    submitted=true;st.className="status";st.textContent="Scores sent to the Google Sheet for "+payload.teamName+".";
+  }catch(err){
+    st.className="status bad";st.textContent="Could not send. Check your internet connection and try again.";
+  }
+  btn.disabled=false;btn.textContent="Submit scores";
+});
+document.getElementById("clear").addEventListener("click",()=>{
+  if(!confirm("Clear all scores and comments?"))return;
+  ROWS.forEach(r=>{
+    r.v=0;r.c="";r.ta.value="";r.ta.disabled=true;
+    r.cells.forEach(b=>b.setAttribute("aria-checked","false"));
+    r.ex.classList.remove("on","err");
+  });
+  submitted=false;
+  document.getElementById("teamName").value="";document.getElementById("general").value="";
+  tally();resetTimer();
+});
+
+/* Timer */
+const TOTAL=300, tEl=document.getElementById("timer"), tShow=document.getElementById("time"), startBtn=document.getElementById("start");
+let remain=TOTAL, endAt=0, tick=null, actx=null;
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function ctx(){
+  if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(A)actx=new A();}
+  if(actx&&actx.state==="suspended")actx.resume();
+  return actx;
+}
+function beep(at,dur,freq){
+  const c=ctx();if(!c)return;
+  const o=c.createOscillator(),g=c.createGain();
+  o.type="square";o.frequency.value=freq||880;
+  g.gain.setValueAtTime(0.0001,c.currentTime+at);
+  g.gain.exponentialRampToValueAtTime(0.35,c.currentTime+at+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+at+dur);
+  o.connect(g);g.connect(c.destination);o.start(c.currentTime+at);o.stop(c.currentTime+at+dur+0.02);
+}
+function alarm(){for(let i=0;i<6;i++)beep(i*0.5,0.3,i%2?988:880);}
+function render(){tShow.textContent=fmt(remain);}
+function loop(){
+  remain=Math.max(0,Math.ceil((endAt-Date.now())/1000));render();
+  if(remain<=0){clearInterval(tick);tick=null;tEl.classList.add("done");startBtn.textContent="Start";alarm();}
+}
+startBtn.addEventListener("click",()=>{
+  ctx();
+  if(tick){clearInterval(tick);tick=null;startBtn.textContent="Resume";return;}
+  if(remain<=0)resetTimer();
+  tEl.classList.remove("done");
+  endAt=Date.now()+remain*1000;tick=setInterval(loop,200);startBtn.textContent="Pause";
+});
+function resetTimer(){
+  clearInterval(tick);tick=null;remain=TOTAL;render();
+  tEl.classList.remove("done");startBtn.textContent="Start";
+}
+document.getElementById("reset").addEventListener("click",resetTimer);
+document.getElementById("test").addEventListener("click",()=>{ctx();beep(0,0.3,880);beep(0.4,0.3,988);});
+render();
+</script>
+</body>
+</html>
